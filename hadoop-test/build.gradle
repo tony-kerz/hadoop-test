@@ -1,0 +1,45 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'project-reports'
+
+sourceCompatibility = 1.5
+version = '1.0'
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+	}
+}
+
+repositories {
+	mavenCentral()
+	//mavenRepo name: 'cloudera', url: 'https://repository.cloudera.com/content/repositories/releases'
+	mavenRepo name: 'cloudera', url: 'https://repository.cloudera.com/artifactory/public'
+}
+
+dependencies {
+	compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+	compile 'org.apache.hadoop:hadoop-core:2.0.0-mr1-cdh4.2.0'
+	compile 'org.apache.hadoop:hadoop-common:2.0.0-cdh4.2.0'
+	compile "ch.qos.logback:logback-classic:${logbackVersion}"
+	testCompile group: 'junit', name: 'junit', version: '4.+'
+	testCompile 'org.apache.mrunit:mrunit:0.9.0-incubating:hadoop2'
+}
+
+test { systemProperties 'property': 'value' }
+
+uploadArchives {
+	repositories { flatDir { dirs 'repos' } }
+}
+
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		if (details.requested.name == 'log4j') {
+			//prefer 'log4j-over-slf4j' over 'log4j', with fixed version:
+			details.useTarget "org.slf4j:log4j-over-slf4j:${slf4jVersion}"
+		}
+		if (details.requested.name == 'slf4j-log4j12') {
+			//prefer 'log4j-over-slf4j' over 'log4j', with fixed version:
+			details.useTarget "org.slf4j:slf4j-api:${slf4jVersion}"
+		}
+	}
+}
